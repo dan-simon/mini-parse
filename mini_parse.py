@@ -86,6 +86,52 @@ def and_then(rule1, result_to_rule2):
 
 Rule.and_then = and_then
 
+def rule_series(rules, to_get):
+    if not rules:
+        return auto([])
+    rule_count = len(rules)
+    def f(matched, state):
+        items = 1
+        states = [state]
+        runs = [rules[0].run(matched, state)]
+        l = []
+        while True:
+            try:
+                n = next(runs[-1])
+                l.append(n[0])
+                if items == rule_count:
+                    yield l, n[1]
+                    l.pop()
+                else:
+                    states.append(n[1])
+                    g = to_get(rules, items, n[0])
+                    runs.append(g.run(matched, n[1]))
+                    items += 1
+            except StopIteration:
+                s = states.pop()
+                runs.pop()
+                items -= 1
+                if l:
+                    l.pop()
+                else:
+                    break
+    return Rule(f)
+
+def and_series(rules):
+    to_get = lambda rules, items, _: rules[items]
+    return rule_series(rules, to_get)
+
+def or_series(rules):
+    def f(matched, state):
+        for rule in rules:
+            for i in rule.run(matched, state):
+                yield i
+    return Rule(f)
+
+def and_then_series(rules):
+    to_get = lambda rules, items, match: rules[items](match)
+    return rule_series(rules, to_get)
+
 def require(rule, cond):
     def f(matched, state):
         for i in rule.run(matched, state):
@@ -177,6 +223,8 @@ def get_next_n(n):
             yield string[pos:pos + n], pos + n
     return Rule(f)
 
+get_n_chars = get_next_n
+
 def exact(string):
     l = len(string)
     def f(matched, pos):
@@ -233,4 +281,3 @@ Rule.concat_all = concat_all
 # Some special useful parsers.
 
 digit = one_char('013456789')
-
