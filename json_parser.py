@@ -1,5 +1,5 @@
 from mini_parse import exact, Grammar, string_grammar, one_char, none_char, \
-    one_of, map_by, digit
+    one_of, map_by, digit, whitespace
 
 def pairs_to_dict(pairs):
 	d = {}
@@ -23,7 +23,7 @@ def read_hex(digits):
 	return chr(d)
 
 def surround_by_ws(rule):
-	return json.whitespace.and_second(rule).and_first(json.whitespace)
+	return whitespace.and_second(rule).and_first(whitespace)
 
 sign_lambda = lambda t: -t[1] if t[0] == '-' else t[1]
 
@@ -32,8 +32,6 @@ json.main = json.object
 json.value = json.string | json.number | json.object | json.array | json.bool | json.null
 json.bool = exact('true').goes_to(True) | exact('false').goes_to(False)
 json.null = exact('null').goes_to(None)
-
-json.whitespace = one_of(' \n\r\t').times()
 
 json.colon = surround_by_ws(exact(':'))
 json.comma = surround_by_ws(exact(','))

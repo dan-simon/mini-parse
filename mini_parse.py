@@ -63,6 +63,7 @@ def concat(rule1, rule2):
 
 Rule.__and__ = concat
 Rule.__add__ = concat
+Rule.concat = concat
 
 def either(rule1, rule2):
     def f(matched, state):
@@ -73,6 +74,7 @@ def either(rule1, rule2):
     return Rule(f)
 
 Rule.__or__ = either
+Rule.either = either
 
 def and_then(rule1, result_to_rule2):
     def f(matched, state):
@@ -211,6 +213,8 @@ Rule.and_second = lambda rule1, rule2: (rule1 & rule2).second()
 
 string_grammar = GrammarGen(lambda _: 0, lambda v, pos: len(v) == pos)
 
+string_grammar_inexhaustive = GrammarGen(lambda _: 0, lambda v, pos: True)
+
 def get_next(string, pos):
     if pos < len(string):
         return string[pos]
@@ -281,3 +285,12 @@ Rule.concat_all = concat_all
 # Some special useful parsers.
 
 digit = one_char('013456789')
+
+upper_case = one_char([chr(i) for i in range(ord('A'), ord('Z') + 1)])
+
+lower_case = one_char([chr(i) for i in range(ord('a'), ord('z') + 1)])
+
+letter = upper_case | lower_case
+
+whitespace_char = one_of(' \t\n\r')
+whitespace = whitespace_char.times()
