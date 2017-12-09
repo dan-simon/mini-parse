@@ -50,6 +50,9 @@ Rule.to_output = lambda x, y: to_output(y)(x)
 
 Rule.__rshift__ = Rule.to_output
 
+# This is here since >> always(junk value) can be helpful.
+always = lambda x: lambda y: x
+
 Rule.goes_to = lambda x, y: to_output(lambda _: y)(x)
 
 def concat(rule1, rule2):
@@ -236,19 +239,21 @@ def exact(string):
             yield string, pos + l
     return Rule(f)
 
-def one_char(s):
-    s = set(s)
+def one_char(s=None):
+    if s is not None:
+        s = set(s)
     def f(matched, pos):
         g = get_next(matched, pos)
-        if g in s and g is not None:
+        if s is None or (g in s and g is not None):
             yield g, pos + 1
     return Rule(f)
 
 def none_char(s):
-    s = set(s)
+    if s is not None:
+        s = set(s)
     def f(matched, pos):
         g = get_next(matched, pos)
-        if g not in s and g is not None:
+        if s is not None and (g not in s and g is not None):
             yield g, pos + 1
     return Rule(f)
 
