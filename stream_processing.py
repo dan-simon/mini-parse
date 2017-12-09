@@ -1,6 +1,6 @@
 # Almost complete solution to Advent of Code Problem 9.
 
-from mini_parse import exact, Grammar, string_grammar, one_char, none_char, always
+from mini_parse import exact, Grammar, string_grammar, one_char, none_char, always, foldl
 
 parser = Grammar(string_grammar)
 
@@ -42,3 +42,17 @@ def part_1(p, x):
 
 def part_2(x):
 	return len(p) if type(p) == str else sum(g_score(i) for i in p)
+
+# Or alternatively, if you are against recursion...
+
+parser_3 = Grammar(string_grammar)
+
+depth = {'{': 1, '}': -1, ',': 0}
+update = {'{': True, '}': False, ',': False}
+
+fold_f = lambda c, new: (c[0], c[1], c[2] + new) if type(new) == int else \
+    (c[0] + depth[new], c[1] + c[0] * update[new], c[2])
+
+parser_3.main = \
+    ((parser.garbage >> len) | exact('{') | exact('}') | exact(',')).times() >> \
+	(lambda x: foldl(fold_f, (1, 0, 0), x)[1:])

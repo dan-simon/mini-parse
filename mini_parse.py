@@ -1,4 +1,6 @@
-class GrammarGen:
+# For compatibility with Python 2, we have all our classes extend object.
+
+class GrammarGen(object):
     def __init__(self, init_state, over):
         self.init_state = init_state
         self.over = over
@@ -11,7 +13,7 @@ class GrammarGen:
                 return i[0]
         return None
 
-class Grammar:
+class Grammar(object):
     def __init__(self, grammar_gen):
         self.__dict__['rules'] = {};
         self.__dict__['grammar_gen'] = grammar_gen
@@ -45,7 +47,7 @@ class Grammar:
     def parse(self, value):
         return self.__dict__['grammar_gen'].parse(value, self.main)
 
-class Rule:
+class Rule(object):
     def __init__(self, run=None):
         self.run = run
 
@@ -313,3 +315,12 @@ letter = upper_case | lower_case
 
 whitespace_char = one_of(' \t\n\r')
 whitespace = whitespace_char.times()
+
+# Some functional constructs. What are these doing here? The hope is that
+# they might be useful as transformers of list output.
+
+def foldl(f, start, l):
+    s = start
+    for i in l:
+        s = f(s, i)
+    return s
