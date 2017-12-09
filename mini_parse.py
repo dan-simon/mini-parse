@@ -18,13 +18,27 @@ class Grammar:
 
     def __getattr__(self, name):
         rules = self.__dict__['rules']
-        if name not in rules:
-            rules[name] = Rule()
+        rules.setdefault(name, Rule())
         return rules[name]
 
     def __setattr__(self, name, value):
         if name in self.rules:
-            self.rules[name].run = value.run
+            if type(value) == Rule:
+                # Change just a method so that references to the object
+                # still return the same object.
+               self.rules[name].run = value.run
+            else:
+                # We've somehow initialized a property, presumably by
+                # referring to it, but we're setting it to a non-rule.
+                # This makes it hard to keep it the same object
+                # (as needed due to our earlier reference to it).
+                # Alternatively, we could have defined it and now be
+                # redefining it, which we could do. I've decided that
+                # until someone does this in practice I won't worry about it.
+                raise ValueError('Setting already-used property to non-rule. '
+                                 'This usually won\'t do what you expect; '
+                                 'if it seems to make sense in your context, '
+                                 'please create an issue.')
         else:
             self.rules[name] = value
 
