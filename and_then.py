@@ -5,4 +5,5 @@ integer = digit.plus().concat_all() >> int
 binary_data = Grammar(string_grammar)
 
 binary_data.main = (exact('b').and_second(integer)).and_then(
-	lambda size: exact(':').and_second(get_next_n(size)))
+	lambda size: exact(':').and_second(get_next_n(size))) >> \
+	(lambda x: int(x, 2))

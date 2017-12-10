@@ -44,8 +44,10 @@ class Grammar(object):
         else:
             self.rules[name] = value
 
-    def parse(self, value):
-        return self.__dict__['grammar_gen'].parse(value, self.main)
+    def parse(self, value, rule=None):
+        if rule is None:
+            rule = self.main
+        return self.__dict__['grammar_gen'].parse(value, rule)
 
 class Rule(object):
     def __init__(self, run=None):
@@ -65,9 +67,6 @@ def to_output(output_trans):
 Rule.to_output = lambda x, y: to_output(y)(x)
 
 Rule.__rshift__ = Rule.to_output
-
-# This is here since >> always(junk value) can be helpful.
-always = lambda x: lambda y: x
 
 Rule.goes_to = lambda x, y: to_output(lambda _: y)(x)
 
@@ -214,9 +213,17 @@ def optional(rule, null=None):
 
 Rule.optional = optional
 
-def join(rule, sep_rule):
-    return (rule & (sep_rule & rule).second().times()).to_output(
-        lambda x: [x[0]] + x[1])
+def join(rule, sep_rule, min_times=1, max_times='*', keep=False):
+    min_times -= 1
+    if type(max_times) == int:
+        max_times -= 1
+    if keep:
+        return (rule & (sep_rule & rule).repeat(
+            min_times, max_times)).to_output(
+            lambda x: [x[0]] + [j for i in x[1] for j in i])
+    else:
+        return (rule & (sep_rule & rule).second().repeat(
+            min_times, max_times)).to_output(lambda x: [x[0]] + x[1])
 
 Rule.join = join
 
@@ -227,6 +234,9 @@ Rule.second = to_output(lambda x: x[1])
 Rule.and_first = lambda rule1, rule2: (rule1 & rule2).first()
 
 Rule.and_second = lambda rule1, rule2: (rule1 & rule2).second()
+
+Rule.surrounded_by = lambda rule, rule1, rule2: \
+    rule1.and_second(rule).and_first(rule2)
 
 # String stuff below.
 
@@ -293,19 +303,32 @@ def map_by(my_map):
                 yield j, i[1]
     return Rule(f)
 
+def iterable(x):
+    return hasattr(x, '__iter__') and type(x) != str
+
+def flatten(x, cond=iterable):
+    if cond(x):
+        return [j for i in x for j in flatten(i, cond)]
+    return [x]
+
+def to_dict(a):
+    return dict(flatten(a,
+        cond=lambda x: iterable(x) and all(iterable(i) for i in x)))
+
 def concat_all(rule):
     def f(x):
-        if type(x) == str:
-            return x
-        else:
-            return ''.join(map(f, x))
+        return ''.join(flatten(x))
     return rule.to_output(f)
 
 Rule.concat_all = concat_all
 
 # Some special useful parsers.
 
-digit = one_char('013456789')
+digit = one_char([chr(i) for i in range(ord('0'), ord('9') + 1)])
+
+positive_int = digit.plus().concat_all() >> int
+
+any_int = (exact('-').optional('') + digit.plus().concat_all()) >> int
 
 upper_case = one_char([chr(i) for i in range(ord('A'), ord('Z') + 1)])
 
@@ -319,8 +342,40 @@ whitespace = whitespace_char.times()
 # Some functional constructs. What are these doing here? The hope is that
 # they might be useful as transformers of list output.
 
+# This is here since >> always(junk value) can be helpful.
+always = lambda x: lambda y: x
+
 def foldl(f, start, l):
     s = start
     for i in l:
         s = f(s, i)
     return s
+
+def first_with(x):
+    return lambda y: (y, x)
+
+def second_with(x):
+    return lambda y: (x, y)
+
+# Some template bootstrapping stuff which can be very useful.
+
+def template(s, d, start='{', end='}', sep=':', ignore='!'):
+    g = Grammar(string_grammar)
+    g.main = g.normal.join(g.match, keep=True)
+    g.match = (g.normal.and_first(exact(sep)) & g.normal).surrounded_by(
+        exact(start), exact(end))
+    g.normal = none_char([start, end, sep]).times().concat_all()
+    parts = g.parse(s)
+    def transform_part(part):
+        if type(part) == str:
+            return exact(part) >> always([])
+        else:
+            if part[1] in d:
+                base = d[part[1]]
+            else:
+                base = exact(part[1])
+            if part[0] == ignore:
+                return base >> always([])
+            else:
+                return base >> second_with(part[0])
+    return and_series([transform_part(part) for part in parts]) >> to_dict
