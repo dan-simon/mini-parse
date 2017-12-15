@@ -1,4 +1,4 @@
-# Almost complete solution to Advent of Code Problem 9.
+# Almost complete solution to Advent of Code 2017 Problem 9.
 
 from mini_parse import exact, Grammar, string_grammar, one_char, none_char, always, foldl
 
