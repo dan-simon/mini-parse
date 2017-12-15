@@ -47,6 +47,8 @@ class Grammar(object):
     def parse(self, value, rule=None):
         if rule is None:
             rule = self.main
+        if type(rule) == str:
+            rule = self.__dict__['rules'][rule]
         return self.__dict__['grammar_gen'].parse(value, rule)
 
 class Rule(object):
@@ -284,7 +286,7 @@ def none_char(s):
     return Rule(f)
 
 def one_of(s):
-    rules = map(exact, s)
+    rules = [exact(i) for i in s]
     def f(matched, pos):
         for i in rules:
             result = i.run(matched, pos)
