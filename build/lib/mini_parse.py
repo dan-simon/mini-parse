@@ -330,7 +330,7 @@ digit = one_char([chr(i) for i in range(ord('0'), ord('9') + 1)])
 
 positive_int = digit.plus().concat_all() >> int
 
-any_int = (exact('-').optional('') + digit.plus().concat_all()) >> int
+any_int = (exact('-').optional('') + digit.plus()).concat_all() >> int
 
 upper_case = one_char([chr(i) for i in range(ord('A'), ord('Z') + 1)])
 
@@ -347,7 +347,10 @@ whitespace = whitespace_char.times()
 # This is here since >> always(junk value) can be helpful.
 always = lambda x: lambda y: x
 
-def foldl(f, start, l):
+# Normal foldl, with optional currying of last parameter.
+def foldl(f, start, l=None):
+    if l is None:
+        return lambda l: foldl(f, start, l)
     s = start
     for i in l:
         s = f(s, i)
@@ -360,7 +363,6 @@ def second_with(x):
     return lambda y: (x, y)
 
 # Some template bootstrapping stuff which can be very useful.
-
 def template(s, d, start='{', end='}', sep=':', ignore='!'):
     g = Grammar(string_grammar)
     g.main = g.normal.join(g.match, keep=True)
