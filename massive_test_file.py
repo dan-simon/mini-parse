@@ -4,6 +4,7 @@ import template_test
 import consistency
 import times_test
 import require_test
+import template_test_2
 
 assert template_test.template_grammar.parse(
     '7 dragons who eat sheep; they make the knights and farmers weep') == \
@@ -48,3 +49,9 @@ assert require_test.parser.parse('8') == ['8']
 assert require_test.parser.parse('12') == ['1', '2']
 
 assert require_test.parser.parse('25') == None
+
+print(template_test_2.parser.parse('foo = 5'))
+
+assert template_test_2.parser.parse('foo = 5') == {'lhs': 'foo', 'rhs': '5'}
+
+assert template_test_2.parser.parse('foo = 6') == None
