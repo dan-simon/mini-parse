@@ -15,7 +15,7 @@ class GrammarGen(object):
 
 class Grammar(object):
     def __init__(self, grammar_gen):
-        self.__dict__['rules'] = {};
+        self.__dict__['rules'] = {}
         self.__dict__['grammar_gen'] = grammar_gen
 
     def __getattr__(self, name):
@@ -364,6 +364,9 @@ def second_with(x):
 
 # Some template bootstrapping stuff which can be very useful.
 def template(s, d, start='{', end='}', sep=':', ignore='!'):
+    # Handle grammars as inputs.
+    if type(d) == Grammar:
+        d = d.__dict__['rules']
     g = Grammar(string_grammar)
     g.main = g.normal.join(g.match, keep=True)
     g.match = (g.normal.and_first(exact(sep)) & g.normal).surrounded_by(
