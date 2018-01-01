@@ -35,12 +35,16 @@ assert times_test.parser.parse('apple') == ['a', 'p', 'p', 'l', 'e']
 
 assert times_test.parser.parse('5') == ['5']
 
-assert times_test.parser.parse('11') == ['1', '1']
+assert times_test.parser.parse('8') == ['8']
 
-assert times_test.parser.parse('25') == ['2', '5']
+assert times_test.parser.parse('12') == ['1', '2']
+
+assert times_test.parser.parse('27') == ['2', '7']
 
 assert require_test.parser.parse('5') == None
 
-assert times_test.parser.parse('11') == None
+assert require_test.parser.parse('8') == ['8']
 
-assert times_test.parser.parse('25') == ['2', '5']
+assert require_test.parser.parse('12') == ['1', '2']
+
+assert require_test.parser.parse('25') == None

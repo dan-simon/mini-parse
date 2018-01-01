@@ -272,7 +272,7 @@ def one_char(s=None):
         s = set(s)
     def f(matched, pos):
         g = get_next(matched, pos)
-        if s is None or (g in s and g is not None):
+        if (s is None or g in s) and g is not None:
             yield g, pos + 1
     return Rule(f)
 
