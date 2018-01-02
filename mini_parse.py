@@ -1,4 +1,7 @@
-# For compatibility with Python 2, we have all our classes extend object.
+# For compatibility with Python 2, we have all our classes extend object
+# (or Exception, in the case of the exception class)
+class UninitializedRuleError(Exception):
+    pass
 
 class GrammarGen(object):
     def __init__(self, init_state, over):
