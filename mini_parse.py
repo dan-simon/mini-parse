@@ -20,7 +20,10 @@ class Grammar(object):
 
     def __getattr__(self, name):
         rules = self.__dict__['rules']
-        rules.setdefault(name, Rule())
+        def f():
+            raise UninitializedRuleError(
+                'Failed to create rule \'' + name + '\'')
+        rules.setdefault(name, Rule(f))
         return rules[name]
 
     def __setattr__(self, name, value):
@@ -52,7 +55,7 @@ class Grammar(object):
         return self.__dict__['grammar_gen'].parse(value, rule)
 
 class Rule(object):
-    def __init__(self, run=None):
+    def __init__(self, run):
         self.run = run
 
 # Ways of creating rules.

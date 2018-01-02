@@ -364,15 +364,24 @@ def second_with(x):
 
 # Some template bootstrapping stuff which can be very useful.
 def template(s, d, start='{', end='}', sep=':', ignore='!'):
-    # Handle grammars as inputs.
-    if type(d) == Grammar:
-        d = d.__dict__['rules']
+    # Grammars cannot be handled as inputs because then there's
+    # no failsafe way to distinguish between an exact string and
+    # a not-yet-defined rule. You might say "This is fine,
+    # we can check in the internal function a few lines down."
+    # However, the internal function is not passed as a callback
+    # or anything like that, but is instead called in this function,
+    # and so is non-helpful. You might also say "Just assume
+    # everything is a rule for a grammar." But, apart from
+    # potential other problems, this is not the same as the
+    # behavior in other cases, which would likely create confusion.
     g = Grammar(string_grammar)
     g.main = g.normal.join(g.match, keep=True)
-    g.match = (g.normal.and_first(exact(sep)) & g.normal).surrounded_by(
-        exact(start), exact(end))
+    g.match = ((g.normal.and_first(exact(sep)) | exact(ignore))
+        & g.normal).surrounded_by(exact(start), exact(end))
     g.normal = none_char([start, end, sep]).times().concat_all()
     parts = g.parse(s)
+    if parts is None:
+        raise Exception('Malformed template string: ' + s)
     def transform_part(part):
         if type(part) == str:
             return exact(part) >> always([])

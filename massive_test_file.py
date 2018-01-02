@@ -50,8 +50,6 @@ assert require_test.parser.parse('12') == ['1', '2']
 
 assert require_test.parser.parse('25') == None
 
-print(template_test_2.parser.parse('foo = 5'))
-
 assert template_test_2.parser.parse('foo = 5') == {'lhs': 'foo', 'rhs': '5'}
 
 assert template_test_2.parser.parse('foo = 6') == None
