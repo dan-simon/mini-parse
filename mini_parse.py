@@ -20,7 +20,7 @@ class Grammar(object):
 
     def __getattr__(self, name):
         rules = self.__dict__['rules']
-        def f():
+        def f(matched, state):
             raise UninitializedRuleError(
                 'Failed to create rule \'' + name + '\'')
         rules.setdefault(name, Rule(f))
