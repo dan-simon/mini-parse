@@ -3,6 +3,7 @@ import csv_parser
 import template_test
 import consistency
 import times_test
+import repeat_test
 import require_test
 import template_test_2
 import broken_grammar
@@ -43,6 +44,18 @@ assert times_test.parser.parse('8') == ['8']
 assert times_test.parser.parse('12') == ['1', '2']
 
 assert times_test.parser.parse('27') == ['2', '7']
+
+assert repeat_test.parser.parse('') == None
+
+assert repeat_test.parser.parse('!') == ['!']
+
+assert repeat_test.parser.parse('!!') == None
+
+assert repeat_test.parser.parse('#') == None
+
+assert repeat_test.parser.parse('#!') == None
+
+assert repeat_test.parser.parse('!#') == None
 
 assert require_test.parser.parse('5') == None
 
